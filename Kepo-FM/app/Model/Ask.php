@@ -9,6 +9,9 @@ use App\Model\Answere;
 
 class Ask extends Model
 {
+    protected $fillable = [
+      'customer_id','slug','question','status_quetioner'
+    ];
     public function like()
     {
       return $this->hasMany(Like::class);

@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\AskNotBelongsToUser;
 use App\Http\Requests\AskRequest;
 use App\Http\Resources\Ask\AskCollection;
 use App\Http\Resources\Ask\AskResource;
 use App\Model\Ask;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
 
 class AskController extends Controller
 {
 
-    public function _construct()
+    public function __construct()
     {
       $this->middleware('auth:api')->except('index','show');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -23,8 +27,9 @@ class AskController extends Controller
 
     public function index()
     {
+        return Ask::with('answere', 'like')->orderBy('created_at', 'DESC')->get();
         //return Ask::all();
-        return AskCollection::collection(Ask::all());
+        //return AskCollection::collection(Ask::all());
     }
 
     /**
@@ -88,7 +93,12 @@ class AskController extends Controller
      */
     public function update(Request $request, Ask $ask)
     {
-        //
+
+      $this->AskUserCheck($ask);
+      $ask->update($request->all());
+      return response([
+          'data' => new AskResource($ask)
+      ],Response::HTTP_CREATED);
     }
 
     /**
@@ -99,6 +109,14 @@ class AskController extends Controller
      */
     public function destroy(Ask $ask)
     {
-        //
+      $this->AskUserCheck($ask);
+      $ask->delete();
+      return response(null,Response::HTTP_NO_CONTENT);
+    }
+    public function AskUserCheck($ask)
+    {
+        if (Auth::id() !== $ask->customer_id) {
+            throw new AskNotBelongsToUser;
+        }
     }
 }

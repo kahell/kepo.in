@@ -1,14 +1,22 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use DB;
+use App\Exceptions\AnswereNotBelongsToAsk;
 use App\Model\Answere;
 use App\Model\Ask;
 use App\Http\Resources\Answere\AnswereResource;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class AnswereController extends Controller
 {
+
+    public function __construct()
+    {
+      $this->middleware('auth:api')->except('index','show');
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -38,7 +46,17 @@ class AnswereController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->AnswereCheck($request);
+
+        $answere = new Answere;
+        $answere->ask_id  = $request->ask_id;
+        $answere->slug  = $request->slug;
+        $answere->answere  = $request->answere;
+        $answere->status_answere  = $request->status_answere;
+        $answere->save();
+        return response([
+          'data' => new AnswereResource($answere)
+        ], 201);
     }
 
     /**
@@ -81,8 +99,20 @@ class AnswereController extends Controller
      * @param  \App\Model\Answere  $answere
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Answere $answere)
+    public function destroy(Ask $ask, Answere $answere)
     {
-        //
+        //return $answere;
+        //$this->AnswereCheck($answere);
+        $answere->delete();
+        return response(null,Response::HTTP_NO_CONTENT);
+    }
+
+    public function AnswereCheck($answere)
+    {
+        $response = DB::table('answeres')->where('ask_id', $answere->ask_id)->get();
+        if($response != '[]')
+        {
+          throw new AnswereNotBelongsToAsk;
+        }
     }
 }

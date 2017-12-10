@@ -12,6 +12,10 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        initialize();
+    }
+
+    public void initialize(){
         Email = (EditText) findViewById(R.id.email);
         Password = (EditText) findViewById(R.id.password);
     }
@@ -24,6 +28,8 @@ public class Login extends AppCompatActivity {
         BackgroundWorker backgroundWorker = new BackgroundWorker(this);
         backgroundWorker.execute(type, email, password);
     }
+
+
 
     public void openRegister(View view)
     {
